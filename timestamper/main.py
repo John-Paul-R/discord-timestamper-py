@@ -1,24 +1,6 @@
-from ctparse import ctparse
-from datetime import datetime
-
-# Set reference time
-# ts = datetime(2023, 3, 12, 14, 30)
-ts = datetime.now()
-
-
-# parsed_date = ctparse('May 5th 2:30 in the afternoon', ts=ts)
-
-def try_date_str(string):
-    parsed_date = ctparse(string, ts=ts)
-
-    print(string)
-    print(parsed_date)
-    print(parsed_date.resolution)
-    print()
-
+import re
 
 import parsedatetime
-import re
 
 
 def sanitize(string):
@@ -47,12 +29,6 @@ def try_parsedatetime_raw_print(string):
 
 
 if __name__ == '__main__':
-    try_date_str('May 5th 2:30 in the afternoon')
-    try_date_str('8:30cst 12/5')
-    try_date_str('Tentative next session 8:30cst 12/5 (may have to change up)')
-    try_date_str('next tues 8:30cst')
-    try_date_str('tues 8:30cst')
-
     try_parsedatetime_raw_print('May 5th 2:30 in the afternoon')
     try_parsedatetime_raw_print('8:30cst 12/5')
     try_parsedatetime_raw_print('8:30 12/5')
@@ -62,5 +38,3 @@ if __name__ == '__main__':
     try_parsedatetime_raw_print('next tues 8:30cst')
     try_parsedatetime_raw_print('tues 8:30cst')
     try_parsedatetime_raw_print(sanitize('tues 8:30cst'))
-
-    # try_date_str('May 5th 2:30 in the afternoon')
