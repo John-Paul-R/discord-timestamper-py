@@ -1,4 +1,5 @@
 import re
+import time
 
 import parsedatetime
 
@@ -11,7 +12,7 @@ def sanitize(string):
     return string
 
 
-def try_parsedatetime(string):
+def try_parsedatetime(string) -> (time.struct_time, parsedatetime.pdtContext):
     string = sanitize(string)
     cal = parsedatetime.Calendar(version=parsedatetime.VERSION_CONTEXT_STYLE)
     # time_struct, parse_status = cal.parse(string)
