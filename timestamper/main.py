@@ -14,8 +14,8 @@ def sanitize(string):
 def try_parsedatetime(string):
     string = sanitize(string)
     cal = parsedatetime.Calendar(version=parsedatetime.VERSION_CONTEXT_STYLE)
-    time_struct, parse_status = cal.parse(string)
-    return time_struct
+    # time_struct, parse_status = cal.parse(string)
+    return cal.parse(string)
 
 
 def try_parsedatetime_raw_print(string):
