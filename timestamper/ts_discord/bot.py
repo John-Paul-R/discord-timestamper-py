@@ -73,17 +73,18 @@ async def on_message(message: discord.Message):
     if content.startswith('$hello'):
         await message.channel.send('Hello!')
 
-    await cmd_set_utc_offset(message)
+    if content.startswith('$timeit'):
+        await cmd_timeit(message, content[len('$timeit'):])
+    elif '$time' in content:
+        await cmd_time(message, content[content.index("$time") + len('$time'):])
+    elif '$t' in content:
+        await cmd_time(message, content[content.index("$t") + len('$t'):])
+    elif content.startswith('$set_utc_offset'):
+        await cmd_set_utc_offset(message, content[len('$set_utc_offset'):])
 
-    await cmd_timeit(message)
-    await cmd_time(message)
 
-
-async def cmd_set_utc_offset(message: discord.Message):
-    if not message.content.startswith('$set_utc_offset'):
-        return
-
-    tz_to_parse = message.content[len('$set_utc_offset'):].strip()
+async def cmd_set_utc_offset(message: discord.Message, cmd_content: str):
+    tz_to_parse = cmd_content.strip()
     try:
         tz_offset = float(tz_to_parse)
         set_user_tz_offset(message.author.id, tz_offset)
@@ -94,16 +95,8 @@ async def cmd_set_utc_offset(message: discord.Message):
             "\n(hint: try a number in the range [-12.0, 14.0], e.g. '5.0')")
 
 
-async def cmd_time(message: discord.Message):
-    content = message.content
-    short_idx = content.find('$t')
-    full_idx = content.find('$time', short_idx)
-    (idx, l) = (full_idx, len('$time')) if full_idx != -1 else (short_idx, len('$t'))
-    if idx == -1:
-        return
-
-    meaningful_time_content = content[l:]
-    await exec_cmd_time(message, meaningful_time_content)
+async def cmd_time(message: discord.Message, cmd_content: str):
+    await exec_cmd_time(message, cmd_content)
 
 
 async def exec_cmd_time(message: discord.Message, meaningful_time_content: str):
@@ -123,13 +116,9 @@ async def exec_cmd_time(message: discord.Message, meaningful_time_content: str):
         #     f"found string '{matched_str}', but no time data could be detected in the message!")
 
 
-async def cmd_timeit(message: discord.Message):
-    if not message.content.startswith('$timeit'):
-        return
-
-    # message_link = message.content[len('timeit'):].strip()
+async def cmd_timeit(message: discord.Message, cmd_content: str):
     reply_msg_id = message.reference.message_id if message.reference is not None else message_id_from_link(
-        message.content[len('$timeit'):].strip())
+        cmd_content.strip())
 
     print(reply_msg_id)
     reply_msg = await message.channel.fetch_message(reply_msg_id)
