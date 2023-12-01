@@ -81,21 +81,27 @@ async def on_message(message):
             set_user_tz_offset(message.author.id, tz_offset)
             await message.channel.send(f"Set your time zone offset to '{tz_offset}'.")
         except:
-            await message.channel.send(f'Failed to parse "tz_offset" to a time zone offset')
+            await message.channel.send(
+                f"Failed to parse '{tz_to_parse}' to a time zone offset"
+                "\n(hint: try a number in the range [-12.0, 14.0], e.g. '5.0')")
 
-    if '$time' in content:
-        res = try_parsedatetime(content[len('$time'):])
+    short_idx = content.find('$t')
+    full_idx = content.find('$time', short_idx)
+    (idx, l) = (full_idx, len('$time')) if full_idx != -1 else (short_idx, len('$t'))
+    if idx != -1:
+        res = try_parsedatetime(content[l:])
         st: time.struct_time = res[0]
         status: parsedatetime.pdtContext = res[1]
-        if status.hasDateOrTime:
+        if status.hasDate and status.hasTime:
             # time_str = time.strftime('%Y-%m-%dT%H:%M:%SZ', timestamp)
             # t = datetime(*timestamp[:6])
             epoch_time = adjust_time_for_user(time.mktime(st), message.author.id)
             await message.channel.send(
                 "Time: <t:{:.0f}:F> (<t:{:.0f}:R>)".format(epoch_time, epoch_time))
         else:
+            matched_str = content[idx:idx + l]
             await message.channel.send(
-                "found string '$time', but no time data could be detected in the message!")
+                f"found string '{matched_str}', but no time data could be detected in the message!")
 
 
 # https://discord.com/developers/applications/1179887574270099486/oauth2/general
