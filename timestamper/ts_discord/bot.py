@@ -6,7 +6,6 @@ import time
 
 import discord
 import parsedatetime
-from discord.abc import Snowflake
 
 from timestamper.main import try_parsedatetime
 
@@ -44,7 +43,7 @@ one_minute_secs = 60
 one_hour_secs = 60 * one_minute_secs
 
 
-def adjust_time_for_user(t: float, user_id: Snowflake):
+def adjust_time_for_user(t: float, user_id: int):
     user_tz_offset_hrs = user_timezones[str(user_id)]
     if user_tz_offset_hrs is None:
         return t
@@ -76,6 +75,7 @@ async def on_message(message: discord.Message):
 
     await cmd_set_utc_offset(message)
 
+    await cmd_timeit(message)
     await cmd_time(message)
 
 
@@ -102,7 +102,12 @@ async def cmd_time(message: discord.Message):
     if idx == -1:
         return
 
-    res = try_parsedatetime(content[l:])
+    meaningful_time_content = content[l:]
+    await exec_cmd_time(message, meaningful_time_content)
+
+
+async def exec_cmd_time(message: discord.Message, meaningful_time_content: str):
+    res = try_parsedatetime(meaningful_time_content)
     st: time.struct_time = res[0]
     status: parsedatetime.pdtContext = res[1]
     if status.hasDate and status.hasTime:
@@ -112,9 +117,28 @@ async def cmd_time(message: discord.Message):
         await message.channel.send(
             "Time: <t:{:.0f}:F> (<t:{:.0f}:R>)".format(epoch_time, epoch_time))
     else:
-        matched_str = content[idx:idx + l]
-        await message.channel.send(
-            f"found string '{matched_str}', but no time data could be detected in the message!")
+        await message.channel.send("no time data detected in message")
+        # matched_str = message.content[idx:idx + l]
+        # await message.channel.send(
+        #     f"found string '{matched_str}', but no time data could be detected in the message!")
+
+
+async def cmd_timeit(message: discord.Message):
+    if not message.content.startswith('$timeit'):
+        return
+
+    # message_link = message.content[len('timeit'):].strip()
+    reply_msg_id = message.reference.message_id if message.reference is not None else message_id_from_link(
+        message.content[len('$timeit'):].strip())
+
+    print(reply_msg_id)
+    reply_msg = await message.channel.fetch_message(reply_msg_id)
+
+    await exec_cmd_time(message, reply_msg.content)
+
+
+def message_id_from_link(link: str) -> str:
+    return link[link.rindex('/') + 1:]
 
 
 # https://discord.com/developers/applications/1179887574270099486/oauth2/general
