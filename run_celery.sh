@@ -1,6 +1,9 @@
 #!/bin/bash
 source ./venv/bin/activate
+
+set -a # automatically export all variables
 source ./.env
+set +a
 #celery longterm_scheduler
 
 if [ -z "$DISCORD_BOT_TOKEN" ]; then
@@ -8,6 +11,4 @@ if [ -z "$DISCORD_BOT_TOKEN" ]; then
   read DISCORD_BOT_TOKEN
 fi
 
-export DISCORD_BOT_TOKEN=$DISCORD_BOT_TOKEN
 celery -A timestamper.ts_discord worker -P threads
-

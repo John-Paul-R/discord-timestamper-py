@@ -22,6 +22,9 @@ intents.message_content = True
 
 celery_pending_tasks = queue.Queue()
 
+sysadmin_user_ids = [int(user_id) for user_id in os.getenv('ADMIN_IDS', default='').split(',')]
+print(f"sysadmin_user_ids: {sysadmin_user_ids}")
+
 
 @discord_tasks.loop(seconds=5.0)
 async def slow_count():
@@ -123,6 +126,12 @@ async def on_message(message: discord.Message):
         await cmd_set_utc_offset(message, content[len('$set_utc_offset'):])
     elif content.startswith('$remindme'):
         await cmd_remindme(message, content[len('$remindme'):])
+    elif (content.startswith('$deletethis')
+          and message.author.id in sysadmin_user_ids
+          and message.reference is not None):
+        target_msg = await message.channel.fetch_message(message.reference.message_id)
+        if target_msg.author.id == client.user.id:
+            await target_msg.delete()
 
 
 async def cmd_set_utc_offset(message: discord.Message, cmd_content: str):
